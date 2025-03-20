@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Container, Typography, Button, Box, CircularProgress, Paper } from "@mui/material";
+import { Typography, Button, Box, CircularProgress, Paper } from "@mui/material";
 
 const API_URL = import.meta.env.PROD 
   ? "https://audiotranslator.onrender.com/api/audio/translate"
@@ -10,6 +10,7 @@ function App() {
   const [englishText, setEnglishText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [translating, setTranslating] = useState(false); 
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -39,8 +40,15 @@ function App() {
       }
 
       const result = await response.json();
+
       setEnglishText(result.original_text);
-      setTranslatedText(result.translated_text);
+      setTranslating(true); 
+
+      setTimeout(() => {
+        setTranslatedText(result.translated_text);
+        setTranslating(false);
+      }, 500); 
+
     } catch (error) {
       console.error("Error:", error);
       alert("Failed to upload and process the audio file.");
@@ -52,15 +60,17 @@ function App() {
   return (
     <Box
       sx={{
-        height: "100vh",
+        minHeight: "100vh",
+        width: "100vw",
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         background: "linear-gradient(135deg, #1f4037, #99f2c8)",
-        padding: 2,
+        padding: 3,
       }}
     >
-      <Paper elevation={5} sx={{ padding: 5, borderRadius: 4, textAlign: "center", maxWidth: 800 }}>
+      <Paper elevation={5} sx={{ padding: 5, borderRadius: 4, textAlign: "center", maxWidth: 700, width: "90%" }}>
         <Typography variant="h4" gutterBottom fontWeight="bold">
           🎤 AI-Powered Audio Translator
         </Typography>
@@ -69,13 +79,7 @@ function App() {
         </Typography>
 
         <Box mt={3}>
-          <input
-            type="file"
-            accept="audio/*"
-            onChange={handleFileChange}
-            style={{ display: "none" }}
-            id="audio-upload"
-          />
+          <input type="file" accept="audio/*" onChange={handleFileChange} style={{ display: "none" }} id="audio-upload" />
           <label htmlFor="audio-upload">
             <Button variant="contained" component="span" sx={{ mb: 2 }}>
               Select Audio File
@@ -89,34 +93,31 @@ function App() {
         </Box>
 
         <Box mt={3}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleUpload}
-            disabled={loading || !file}
-          >
+          <Button variant="contained" color="primary" onClick={handleUpload} disabled={loading || !file}>
             {loading ? <CircularProgress size={24} /> : "Upload & Translate"}
           </Button>
         </Box>
 
-        <Box mt={4}>
-          <Typography variant="h6" fontWeight="bold">
-            Transcribed English Text:
-          </Typography>
-          <Paper elevation={1} sx={{ p: 2, minHeight: 100, backgroundColor: "#f5f5f5" }}>
+        {/* Transcribed English Text */}
+        <Box mt={4} sx={{ display: "flex", justifyContent: "center" }}>
+          <Paper elevation={1} sx={{ p: 3, minHeight: 80, width: "100%", maxWidth: 900, backgroundColor: "#f5f5f5" }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+              Transcribed English Text:
+            </Typography>
             <Typography variant="body1" color="textPrimary">
-              {englishText || "English transcription will appear here..."}
+              {englishText || (loading ? "Transcribing..." : "English transcription will appear here...")}
             </Typography>
           </Paper>
         </Box>
 
-        <Box mt={4}>
-          <Typography variant="h6" fontWeight="bold">
-            Translated Tamil Text:
-          </Typography>
-          <Paper elevation={1} sx={{ p: 2, minHeight: 100, backgroundColor: "#f5f5f5" }}>
+        {/* Translated Tamil Text */}
+        <Box mt={4} sx={{ display: "flex", justifyContent: "center" }}>
+          <Paper elevation={1} sx={{ p: 3, minHeight: 80, width: "100%", maxWidth: 900, backgroundColor: "#f5f5f5" }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+              Translated Tamil Text:
+            </Typography>
             <Typography variant="body1" color="textPrimary">
-              {translatedText || "Tamil translation will appear here..."}
+              {translating ? "Translating..." : translatedText || "Tamil translation will appear here..."}
             </Typography>
           </Paper>
         </Box>
