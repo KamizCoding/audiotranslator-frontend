@@ -72,7 +72,7 @@ function App() {
     >
       <Paper elevation={5} sx={{ padding: 5, borderRadius: 4, textAlign: "center", maxWidth: 700, width: "90%" }}>
         <Typography variant="h4" gutterBottom fontWeight="bold">
-          🎤 AI-Powered Audio Translator
+          🎤 Verve AI Audio Translator
         </Typography>
         <Typography variant="subtitle1" color="textSecondary" gutterBottom>
           Upload an English audio file to transcribe and translate it.
