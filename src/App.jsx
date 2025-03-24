@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Typography, Button, Box, CircularProgress, Paper } from "@mui/material";
+import { Typography, Button, Box, CircularProgress, Paper, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 
 const API_URL = import.meta.env.PROD 
   ? "https://audiotranslator.onrender.com/api/audio/translate"
@@ -7,10 +7,11 @@ const API_URL = import.meta.env.PROD
 
 function App() {
   const [file, setFile] = useState(null);
+  const [targetLanguage, setTargetLanguage] = useState("Tamil");
   const [englishText, setEnglishText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [translating, setTranslating] = useState(false); 
+  const [translating, setTranslating] = useState(false);
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -24,6 +25,7 @@ function App() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("language", targetLanguage);
 
     setLoading(true);
     setEnglishText("");
@@ -42,13 +44,12 @@ function App() {
       const result = await response.json();
 
       setEnglishText(result.original_text);
-      setTranslating(true); 
+      setTranslating(true);
 
       setTimeout(() => {
         setTranslatedText(result.translated_text);
         setTranslating(false);
-      }, 500); 
-
+      }, 500);
     } catch (error) {
       console.error("Error:", error);
       alert("Failed to upload and process the audio file.");
@@ -75,7 +76,7 @@ function App() {
           🎤 AI-Powered Audio Translator
         </Typography>
         <Typography variant="subtitle1" color="textSecondary" gutterBottom>
-          Upload an English audio file to transcribe and translate it into Tamil.
+          Upload an English audio file to transcribe and translate it into Tamil or Malay.
         </Typography>
 
         <Box mt={3}>
@@ -92,15 +93,27 @@ function App() {
           )}
         </Box>
 
+        <FormControl fullWidth sx={{ mt: 2 }}>
+          <InputLabel id="language-select-label">Translate To</InputLabel>
+          <Select
+            labelId="language-select-label"
+            value={targetLanguage}
+            label="Translate To"
+            onChange={(e) => setTargetLanguage(e.target.value)}
+          >
+            <MenuItem value="Tamil">Tamil</MenuItem>
+            <MenuItem value="Malay">Malay</MenuItem>
+          </Select>
+        </FormControl>
+
         <Box mt={3}>
           <Button variant="contained" color="primary" onClick={handleUpload} disabled={loading || !file}>
             {loading ? <CircularProgress size={24} /> : "Upload & Translate"}
           </Button>
         </Box>
 
-        {/* Transcribed English Text */}
         <Box mt={4} sx={{ display: "flex", justifyContent: "center" }}>
-          <Paper elevation={1} sx={{ p: 3, minHeight: 80, width: "100%", maxWidth: 900, backgroundColor: "#f5f5f5" }}>
+          <Paper elevation={1} sx={{ p: 3, minHeight: 80, width: "100%", backgroundColor: "#f5f5f5" }}>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
               Transcribed English Text:
             </Typography>
@@ -110,14 +123,13 @@ function App() {
           </Paper>
         </Box>
 
-        {/* Translated Tamil Text */}
         <Box mt={4} sx={{ display: "flex", justifyContent: "center" }}>
-          <Paper elevation={1} sx={{ p: 3, minHeight: 80, width: "100%", maxWidth: 900, backgroundColor: "#f5f5f5" }}>
+          <Paper elevation={1} sx={{ p: 3, minHeight: 80, width: "100%", backgroundColor: "#f5f5f5" }}>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
-              Translated Tamil Text:
+              Translated {targetLanguage} Text:
             </Typography>
             <Typography variant="body1" color="textPrimary">
-              {translating ? "Translating..." : translatedText || "Tamil translation will appear here..."}
+              {translating ? "Translating..." : translatedText || `${targetLanguage} translation will appear here...`}
             </Typography>
           </Paper>
         </Box>
