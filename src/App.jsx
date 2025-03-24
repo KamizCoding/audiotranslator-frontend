@@ -42,7 +42,6 @@ function App() {
       }
 
       const result = await response.json();
-
       setEnglishText(result.original_text);
       setTranslating(true);
 
@@ -76,8 +75,23 @@ function App() {
           🎤 AI-Powered Audio Translator
         </Typography>
         <Typography variant="subtitle1" color="textSecondary" gutterBottom>
-          Upload an English audio file to transcribe and translate it into Tamil or Malay.
+          Upload an English audio file to transcribe and translate it.
         </Typography>
+
+        <FormControl fullWidth sx={{ mt: 2 }}>
+          <InputLabel>Translate To</InputLabel>
+          <Select
+            value={targetLanguage}
+            label="Translate To"
+            onChange={(e) => setTargetLanguage(e.target.value)}
+          >
+            <MenuItem value="Tamil">Tamil</MenuItem>
+            <MenuItem value="Malay">Malay</MenuItem>
+            <MenuItem value="Mandarin">Mandarin</MenuItem>
+            <MenuItem value="Cantonese">Cantonese</MenuItem>
+            <MenuItem value="Japanese">Japanese</MenuItem>
+          </Select>
+        </FormControl>
 
         <Box mt={3}>
           <input type="file" accept="audio/*" onChange={handleFileChange} style={{ display: "none" }} id="audio-upload" />
@@ -93,42 +107,29 @@ function App() {
           )}
         </Box>
 
-        <FormControl fullWidth sx={{ mt: 2 }}>
-          <InputLabel id="language-select-label">Translate To</InputLabel>
-          <Select
-            labelId="language-select-label"
-            value={targetLanguage}
-            label="Translate To"
-            onChange={(e) => setTargetLanguage(e.target.value)}
-          >
-            <MenuItem value="Tamil">Tamil</MenuItem>
-            <MenuItem value="Malay">Malay</MenuItem>
-          </Select>
-        </FormControl>
-
         <Box mt={3}>
           <Button variant="contained" color="primary" onClick={handleUpload} disabled={loading || !file}>
             {loading ? <CircularProgress size={24} /> : "Upload & Translate"}
           </Button>
         </Box>
 
-        <Box mt={4} sx={{ display: "flex", justifyContent: "center" }}>
-          <Paper elevation={1} sx={{ p: 3, minHeight: 80, width: "100%", backgroundColor: "#f5f5f5" }}>
+        <Box mt={4}>
+          <Paper elevation={1} sx={{ p: 3, minHeight: 80, backgroundColor: "#f5f5f5" }}>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
               Transcribed English Text:
             </Typography>
-            <Typography variant="body1" color="textPrimary">
+            <Typography variant="body1">
               {englishText || (loading ? "Transcribing..." : "English transcription will appear here...")}
             </Typography>
           </Paper>
         </Box>
 
-        <Box mt={4} sx={{ display: "flex", justifyContent: "center" }}>
-          <Paper elevation={1} sx={{ p: 3, minHeight: 80, width: "100%", backgroundColor: "#f5f5f5" }}>
+        <Box mt={4}>
+          <Paper elevation={1} sx={{ p: 3, minHeight: 80, backgroundColor: "#f5f5f5" }}>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
               Translated {targetLanguage} Text:
             </Typography>
-            <Typography variant="body1" color="textPrimary">
+            <Typography variant="body1">
               {translating ? "Translating..." : translatedText || `${targetLanguage} translation will appear here...`}
             </Typography>
           </Paper>
