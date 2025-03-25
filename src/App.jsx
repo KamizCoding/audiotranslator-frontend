@@ -1,12 +1,25 @@
 import { useState } from "react";
-import { Typography, Button, Box, CircularProgress, Paper, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
+import {
+  Typography,
+  Button,
+  Box,
+  CircularProgress,
+  Paper,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl
+} from "@mui/material";
 
-const API_URL = import.meta.env.PROD 
+const API_URL = import.meta.env.PROD
   ? "https://audiotranslator.onrender.com/api/audio/translate"
   : "/api/audio/translate";
 
+const FULL_TARGET_LANGUAGES = ["Tamil", "Malay", "Mandarin", "Cantonese", "Japanese"];
+
 function App() {
   const [file, setFile] = useState(null);
+  const [audioLanguage, setAudioLanguage] = useState("English");
   const [targetLanguage, setTargetLanguage] = useState("Tamil");
   const [englishText, setEnglishText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
@@ -17,6 +30,16 @@ function App() {
     setFile(event.target.files[0]);
   };
 
+  const handleAudioLanguageChange = (e) => {
+    const selectedAudioLang = e.target.value;
+    setAudioLanguage(selectedAudioLang);
+    if (selectedAudioLang === "Tamil") {
+      setTargetLanguage("English"); // Only allow English if Tamil audio
+    } else {
+      setTargetLanguage("Tamil"); // Reset to Tamil for English audio
+    }
+  };
+
   const handleUpload = async () => {
     if (!file) {
       alert("Please select an audio file.");
@@ -25,6 +48,7 @@ function App() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("audioLanguage", audioLanguage);
     formData.append("language", targetLanguage);
 
     setLoading(true);
@@ -34,7 +58,7 @@ function App() {
     try {
       const response = await fetch(API_URL, {
         method: "POST",
-        body: formData,
+        body: formData
       });
 
       if (!response.ok) {
@@ -67,7 +91,7 @@ function App() {
         justifyContent: "center",
         alignItems: "center",
         background: "linear-gradient(135deg, #1f4037, #99f2c8)",
-        padding: 3,
+        padding: 3
       }}
     >
       <Paper elevation={5} sx={{ padding: 5, borderRadius: 4, textAlign: "center", maxWidth: 700, width: "90%" }}>
@@ -75,26 +99,52 @@ function App() {
           🎤 Verve AI Audio Translator
         </Typography>
         <Typography variant="subtitle1" color="textSecondary" gutterBottom>
-          Upload an English audio file to transcribe and translate it.
+          Upload an audio file to transcribe and translate it.
         </Typography>
 
+        {/* Audio Language Dropdown */}
+        <FormControl fullWidth sx={{ mt: 2 }}>
+          <InputLabel>Audio Language</InputLabel>
+          <Select
+            value={audioLanguage}
+            label="Audio Language"
+            onChange={handleAudioLanguageChange}
+          >
+            <MenuItem value="English">English</MenuItem>
+            <MenuItem value="Tamil">Tamil</MenuItem>
+          </Select>
+        </FormControl>
+
+        {/* Target Language Dropdown */}
         <FormControl fullWidth sx={{ mt: 2 }}>
           <InputLabel>Translate To</InputLabel>
           <Select
             value={targetLanguage}
             label="Translate To"
             onChange={(e) => setTargetLanguage(e.target.value)}
+            disabled={audioLanguage === "Tamil"}
           >
-            <MenuItem value="Tamil">Tamil</MenuItem>
-            <MenuItem value="Malay">Malay</MenuItem>
-            <MenuItem value="Mandarin">Mandarin</MenuItem>
-            <MenuItem value="Cantonese">Cantonese</MenuItem>
-            <MenuItem value="Japanese">Japanese</MenuItem>
+            {audioLanguage === "Tamil" ? (
+              <MenuItem value="English">English</MenuItem>
+            ) : (
+              FULL_TARGET_LANGUAGES.map((lang) => (
+                <MenuItem key={lang} value={lang}>
+                  {lang}
+                </MenuItem>
+              ))
+            )}
           </Select>
         </FormControl>
 
+        {/* File Input */}
         <Box mt={3}>
-          <input type="file" accept="audio/*" onChange={handleFileChange} style={{ display: "none" }} id="audio-upload" />
+          <input
+            type="file"
+            accept="audio/*"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+            id="audio-upload"
+          />
           <label htmlFor="audio-upload">
             <Button variant="contained" component="span" sx={{ mb: 2 }}>
               Select Audio File
@@ -107,30 +157,33 @@ function App() {
           )}
         </Box>
 
+        {/* Upload Button */}
         <Box mt={3}>
           <Button variant="contained" color="primary" onClick={handleUpload} disabled={loading || !file}>
             {loading ? <CircularProgress size={24} /> : "Upload & Translate"}
           </Button>
         </Box>
 
+        {/* Transcription */}
         <Box mt={4}>
           <Paper elevation={1} sx={{ p: 3, minHeight: 80, backgroundColor: "#f5f5f5" }}>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
-              Transcribed English Text:
+              Transcribed Text:
             </Typography>
             <Typography variant="body1">
-              {englishText || (loading ? "Transcribing..." : "English transcription will appear here...")}
+              {englishText || (loading ? "Transcribing..." : "Transcription will appear here...")}
             </Typography>
           </Paper>
         </Box>
 
+        {/* Translation */}
         <Box mt={4}>
           <Paper elevation={1} sx={{ p: 3, minHeight: 80, backgroundColor: "#f5f5f5" }}>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
-              Translated {targetLanguage} Text:
+              Translated Text:
             </Typography>
             <Typography variant="body1">
-              {translating ? "Translating..." : translatedText || `${targetLanguage} translation will appear here...`}
+              {translating ? "Translating..." : translatedText || "Translation will appear here..."}
             </Typography>
           </Paper>
         </Box>
