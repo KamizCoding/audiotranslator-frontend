@@ -8,7 +8,7 @@ import {
   MenuItem,
   Select,
   InputLabel,
-  FormControl
+  FormControl,
 } from "@mui/material";
 
 const API_UPLOAD_URL = import.meta.env.PROD
@@ -24,7 +24,7 @@ const AUDIO_LANGUAGES = [...TARGET_LANGUAGES];
 
 function App() {
   const [mode, setMode] = useState("");
-  const [inputType, setInputType] = useState("upload");
+  const [subMode, setSubMode] = useState(""); // mic or upload inside "to"
   const [file, setFile] = useState(null);
   const [audioLanguage, setAudioLanguage] = useState("Tamil");
   const [targetLanguage, setTargetLanguage] = useState("English");
@@ -38,7 +38,7 @@ function App() {
 
   const resetState = () => {
     setFile(null);
-    setInputType("upload");
+    setSubMode("");
     setEnglishText("");
     setTranslatedText("");
     setLoading(false);
@@ -63,10 +63,8 @@ function App() {
     try {
       const response = await fetch(API_UPLOAD_URL, {
         method: "POST",
-        body: formData
+        body: formData,
       });
-
-      if (!response.ok) throw new Error("Error processing the audio file.");
 
       const result = await response.json();
       setEnglishText(result.original_text);
@@ -76,8 +74,7 @@ function App() {
         setTranslatedText(result.translated_text);
         setTranslating(false);
       }, 500);
-    } catch (error) {
-      console.error("Error:", error);
+    } catch (err) {
       alert("Failed to process the audio.");
     } finally {
       setLoading(false);
@@ -85,21 +82,17 @@ function App() {
   };
 
   const handleStartRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      recordedChunksRef.current = [];
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorderRef.current = new MediaRecorder(stream);
+    recordedChunksRef.current = [];
 
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0) recordedChunksRef.current.push(event.data);
-      };
+    mediaRecorderRef.current.ondataavailable = (e) => {
+      if (e.data.size > 0) recordedChunksRef.current.push(e.data);
+    };
 
-      mediaRecorderRef.current.onstop = handleStopRecording;
-      mediaRecorderRef.current.start();
-      setRecording(true);
-    } catch (err) {
-      console.error("Error starting recording:", err);
-    }
+    mediaRecorderRef.current.onstop = handleStopRecording;
+    mediaRecorderRef.current.start();
+    setRecording(true);
   };
 
   const handleStopRecording = async () => {
@@ -116,10 +109,8 @@ function App() {
     try {
       const response = await fetch(API_MIC_URL, {
         method: "POST",
-        body: formData
+        body: formData,
       });
-
-      if (!response.ok) throw new Error("Error processing mic input.");
 
       const result = await response.json();
       setEnglishText(result.original_text);
@@ -129,9 +120,8 @@ function App() {
         setTranslatedText(result.translated_text);
         setTranslating(false);
       }, 500);
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Failed to process mic input.");
+    } catch (err) {
+      alert("Mic processing failed.");
     } finally {
       setLoading(false);
     }
@@ -146,24 +136,23 @@ function App() {
         justifyContent: "center",
         alignItems: "center",
         background: "linear-gradient(135deg, #1f4037, #99f2c8)",
-        padding: 3
+        padding: 3,
       }}
     >
-      <Paper elevation={5} sx={{ padding: 5, borderRadius: 4, textAlign: "center", maxWidth: 700, width: "100%" }}>
+      <Paper elevation={5} sx={{ p: 5, borderRadius: 4, textAlign: "center", maxWidth: 700, width: "100%" }}>
         <Typography variant="h4" fontWeight="bold" sx={{ mb: 3 }}>
           🎤 Verve AI Audio Translator
         </Typography>
 
         {!mode && (
           <>
-            <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
               What would you like to do?
             </Typography>
-            <FormControl fullWidth sx={{ mb: 4 }}>
+            <FormControl fullWidth sx={{ mb: 3 }}>
               <InputLabel>Select Mode</InputLabel>
               <Select
                 value=""
-                label="Select Mode"
                 onChange={(e) => {
                   setMode(e.target.value);
                   resetState();
@@ -183,10 +172,25 @@ function App() {
           </>
         )}
 
+        {mode === "to" && !subMode && (
+          <>
+            <Typography fontWeight="bold" sx={{ mb: 2 }}>
+              Choose Input Method for Translation to English
+            </Typography>
+            <FormControl fullWidth sx={{ mb: 3 }}>
+              <InputLabel>Input Type</InputLabel>
+              <Select value="" onChange={(e) => setSubMode(e.target.value)}>
+                <MenuItem value="upload">Upload Audio File</MenuItem>
+                <MenuItem value="mic">Speak & Translate</MenuItem>
+              </Select>
+            </FormControl>
+          </>
+        )}
+
         {mode === "from" && (
           <>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-              🎤 Translate English Audio To Another Language
+            <Typography fontWeight="bold" sx={{ mb: 2 }}>
+              🎧 Translate English Audio to Another Language
             </Typography>
 
             <FormControl fullWidth sx={{ mb: 2 }}>
@@ -200,31 +204,22 @@ function App() {
               </Select>
             </FormControl>
 
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={(e) => setFile(e.target.files[0])}
-              style={{ display: "none" }}
-              id="audio-upload"
-            />
-            <label htmlFor="audio-upload">
+            <input type="file" accept="audio/*" id="file-upload" onChange={(e) => setFile(e.target.files[0])} style={{ display: "none" }} />
+            <label htmlFor="file-upload">
               <Button variant="contained" component="span" sx={{ mb: 2 }}>
                 Select Audio File
               </Button>
             </label>
-            {file && <Typography>Selected: {file.name}</Typography>}
+            {file && <Typography>{file.name}</Typography>}
+
             <Button variant="contained" onClick={handleUpload} disabled={loading || !file}>
               {loading ? <CircularProgress size={24} /> : "Upload & Translate"}
             </Button>
           </>
         )}
 
-        {mode === "to" && (
+        {mode === "to" && subMode === "upload" && (
           <>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-              🎤 Translate Audio From Another Language to English
-            </Typography>
-
             <FormControl fullWidth sx={{ mb: 2 }}>
               <InputLabel>Audio Language</InputLabel>
               <Select value={audioLanguage} onChange={(e) => setAudioLanguage(e.target.value)}>
@@ -236,52 +231,43 @@ function App() {
               </Select>
             </FormControl>
 
+            <input type="file" accept="audio/*" id="file-upload" onChange={(e) => setFile(e.target.files[0])} style={{ display: "none" }} />
+            <label htmlFor="file-upload">
+              <Button variant="contained" component="span" sx={{ mb: 2 }}>
+                Select Audio File
+              </Button>
+            </label>
+            {file && <Typography>{file.name}</Typography>}
+
+            <Button variant="contained" onClick={handleUpload} disabled={loading || !file}>
+              {loading ? <CircularProgress size={24} /> : "Upload & Translate"}
+            </Button>
+          </>
+        )}
+
+        {mode === "to" && subMode === "mic" && (
+          <>
             <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Input Type</InputLabel>
-              <Select value={inputType} onChange={(e) => setInputType(e.target.value)}>
-                <MenuItem value="upload">Audio File</MenuItem>
-                <MenuItem value="mic">Mic Input</MenuItem>
+              <InputLabel>Audio Language</InputLabel>
+              <Select value={audioLanguage} onChange={(e) => setAudioLanguage(e.target.value)}>
+                {AUDIO_LANGUAGES.map((lang) => (
+                  <MenuItem key={lang} value={lang}>
+                    {lang}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
 
-            {inputType === "upload" && (
-              <>
-                <input
-                  type="file"
-                  accept="audio/*"
-                  onChange={(e) => setFile(e.target.files[0])}
-                  style={{ display: "none" }}
-                  id="audio-upload"
-                />
-                <label htmlFor="audio-upload">
-                  <Button variant="contained" component="span" sx={{ mb: 2 }}>
-                    Select Audio File
-                  </Button>
-                </label>
-                {file && <Typography>Selected: {file.name}</Typography>}
-                <Button variant="contained" onClick={handleUpload} disabled={loading || !file}>
-                  {loading ? <CircularProgress size={24} /> : "Upload & Translate"}
-                </Button>
-              </>
-            )}
-
-            {inputType === "mic" && (
-              <>
-                <Button
-                  variant="contained"
-                  color={recording ? "error" : "success"}
-                  onClick={() => {
-                    if (recording) {
-                      mediaRecorderRef.current.stop();
-                    } else {
-                      handleStartRecording();
-                    }
-                  }}
-                >
-                  {recording ? "Stop Recording" : "Start Recording"}
-                </Button>
-              </>
-            )}
+            <Button
+              variant="contained"
+              color={recording ? "error" : "success"}
+              onClick={() => {
+                if (recording) mediaRecorderRef.current.stop();
+                else handleStartRecording();
+              }}
+            >
+              {recording ? "Stop Recording" : "Start Recording"}
+            </Button>
           </>
         )}
 
