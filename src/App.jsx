@@ -16,10 +16,10 @@ const API_URL = import.meta.env.PROD
   : "/api/audio/translate";
 
 const TARGET_LANGUAGES = ["Tamil", "Malay", "Mandarin", "Cantonese", "Japanese"];
-const AUDIO_LANGUAGES = [...TARGET_LANGUAGES]; // For "Translate to English"
+const AUDIO_LANGUAGES = [...TARGET_LANGUAGES];
 
 function App() {
-  const [mode, setMode] = useState(""); // "from" or "to"
+  const [mode, setMode] = useState("");
   const [file, setFile] = useState(null);
   const [audioLanguage, setAudioLanguage] = useState("English");
   const [targetLanguage, setTargetLanguage] = useState("Tamil");
@@ -88,6 +88,11 @@ function App() {
       }}
     >
       <Paper elevation={5} sx={{ padding: 5, borderRadius: 4, textAlign: "center", maxWidth: 700, width: "100%" }}>
+        {/* Consistent Heading */}
+        <Typography variant="h4" fontWeight="bold" sx={{ mb: 3 }}>
+          🎤 Verve AI Audio Translator
+        </Typography>
+
         {/* Initial Mode Selection View */}
         {!mode && (
           <>
@@ -121,7 +126,7 @@ function App() {
           </>
         )}
 
-        {/* English ➝ Target Language */}
+        {/* Translate from English */}
         {mode === "from" && (
           <>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
@@ -141,7 +146,7 @@ function App() {
           </>
         )}
 
-        {/* Any Language ➝ English */}
+        {/* Translate to English */}
         {mode === "to" && (
           <>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
@@ -161,7 +166,7 @@ function App() {
           </>
         )}
 
-        {/* File Upload */}
+        {/* File Upload & Actions */}
         {mode && (
           <>
             <Box mt={2}>
