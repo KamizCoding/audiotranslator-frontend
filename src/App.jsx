@@ -19,12 +19,15 @@ const API_MIC_URL = import.meta.env.PROD
   ? "https://audiotranslator.onrender.com/api/audio/mic-translate"
   : "/api/audio/mic-translate";
 
+// This is your GitHub Actions workflow dispatch endpoint
+const TRIGGER_ONEDRIVE_SYNC_URL = "https://api.github.com/repos/KamizCoding/verve-audio-middleware/actions/workflows/onedrive-fetch.yml/dispatches";
+
 const TARGET_LANGUAGES = ["Tamil", "Malay", "Mandarin", "Cantonese", "Japanese"];
 const AUDIO_LANGUAGES = [...TARGET_LANGUAGES];
 
 function App() {
   const [mode, setMode] = useState("");
-  const [subMode, setSubMode] = useState(""); // mic or upload inside "to"
+  const [subMode, setSubMode] = useState("");
   const [file, setFile] = useState(null);
   const [audioLanguage, setAudioLanguage] = useState("Tamil");
   const [targetLanguage, setTargetLanguage] = useState("English");
@@ -127,6 +130,28 @@ function App() {
     }
   };
 
+  const triggerOneDriveSync = async () => {
+    try {
+      const res = await fetch(TRIGGER_ONEDRIVE_SYNC_URL, {
+        method: "POST",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${import.meta.env.VITE_GITHUB_PAT}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+        body: JSON.stringify({ ref: "main" }),
+      });
+
+      if (res.ok) {
+        alert("OneDrive sync job triggered successfully via GitHub Actions!");
+      } else {
+        alert("Failed to trigger GitHub Action. Please check token or repo.");
+      }
+    } catch (error) {
+      alert("Error triggering GitHub Action: " + error.message);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -159,7 +184,7 @@ function App() {
                   if (e.target.value === "from") {
                     setAudioLanguage("English");
                     setTargetLanguage("Tamil");
-                  } else {
+                  } else if (e.target.value === "to") {
                     setAudioLanguage("Tamil");
                     setTargetLanguage("English");
                   }
@@ -167,6 +192,7 @@ function App() {
               >
                 <MenuItem value="from">Translate from English</MenuItem>
                 <MenuItem value="to">Translate to English</MenuItem>
+                <MenuItem value="onedrive">Trigger OneDrive Audio Fetch</MenuItem>
               </Select>
             </FormControl>
           </>
@@ -291,6 +317,21 @@ function App() {
               </Paper>
             </Box>
 
+            <Button onClick={() => setMode("")} sx={{ mt: 3 }}>
+              🔙 Back to Mode Selection
+            </Button>
+          </>
+        )}
+
+
+        {mode === "onedrive" && (
+          <>
+            <Typography sx={{ mb: 2 }}>
+              This will trigger GitHub Actions to fetch and process OneDrive audio files.
+            </Typography>
+            <Button variant="contained" onClick={triggerOneDriveSync}>
+              🔁 Trigger OneDrive Sync
+            </Button>
             <Button onClick={() => setMode("")} sx={{ mt: 3 }}>
               🔙 Back to Mode Selection
             </Button>
