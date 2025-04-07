@@ -19,8 +19,8 @@ const API_MIC_URL = import.meta.env.PROD
   ? "https://audiotranslator.onrender.com/api/audio/mic-translate"
   : "/api/audio/mic-translate";
 
-// This is your GitHub Actions workflow dispatch endpoint
-const TRIGGER_ONEDRIVE_SYNC_URL = "https://api.github.com/repos/KamizCoding/verve-audio-middleware/actions/workflows/onedrive-fetch.yml/dispatches";
+const TRIGGER_ONEDRIVE_SYNC_URL = "https://api.github.com/repos/KamizCoding/verve-audio-middleware/actions/workflows/middleware-job.yml/dispatches";
+
 
 const TARGET_LANGUAGES = ["Tamil", "Malay", "Mandarin", "Cantonese", "Japanese"];
 const AUDIO_LANGUAGES = [...TARGET_LANGUAGES];
